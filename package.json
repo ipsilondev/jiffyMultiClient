@@ -1,0 +1,28 @@
+{
+  "name": "jiffymulticlient",
+  "version": "0.1.0",
+  "description": "Wrapper for client request to services on http & websocket if is available",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipsilondev/jiffyMultiClient.git"
+  },
+  "keywords": [
+    "fetch",
+    "axios",
+    "socket.io",
+    "request",
+    "client",
+    "ajax",
+    "xhr"
+  ],
+  "author": "Ipsilon Developments Inc.",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ipsilondev/jiffyMultiClient/issues"
+  },
+  "homepage": "https://github.com/ipsilondev/jiffyMultiClient#readme"
+}
