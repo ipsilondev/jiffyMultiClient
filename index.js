@@ -25,20 +25,30 @@ function jiffyMultiClient () {
 	}
 	this.get = function(path, data = {}, ioDisable = false) {
 		if(ioDisable != true && this.wsReady == true) {
-			this.sendWebsocket('get', path, data);
+			return this.sendWebsocket('get', path, data);
 		}else {
-			this.transportHTTP('get', path, data);
+			return this.transportHTTP('get', path, data);
 		}
 	}
 	this.post = function(path, data = {}, ioDisable = false) {
 		if(ioDisable != true && this.wsReady == true) {
-			this.sendWebsocket('post', path, data);
+			return this.sendWebsocket('post', path, data);
 		}else {
-			this.transportHTTP('post', path, data);
+			return this.transportHTTP('post', path, data);
 		}		
 	}
 	this.fetchTransport = function(method, path, data) {
-		return fetch(this.baseURL + path, {method: method.toUpperCase(), body: data});
+		var url = this.baseURL + path;
+		var obj = {method: method.toUpperCase()};
+		if (method == 'get') {
+			url += "?1=1";
+			Object.keys(data).forEach(function (item, index) {
+				url += '&' + item + "=" + data[item];
+				});
+		} else {
+			obj.body = data;
+		}
+		return fetch(url, data);
 	}
 	this.axiosTransport = function(method, path, data) {
 		if(method == 'get') {
@@ -58,6 +68,9 @@ function jiffyMultiClient () {
 	//options.ioOptions = options to pass to socket.io
 	//options.io = in case you already have an io connection, overwrite the local one	
 	this.initWebsocket = function (options) {
+		if(options == null || options == undefined) {
+			options = {};
+		}
 		if(options.io != null && options.io != undefined) {
 			this.io = options.io;
 		} else {
@@ -69,13 +82,16 @@ function jiffyMultiClient () {
 			} else {
 				this.optionsIO.url = this.baseURL;
 			}
-			if(io != null && io != undefined) {
+			if(typeof io != 'undefined') {
 				this.initSocketObject();
 			} else {
 				var script = document.createElement('script');
 				script.type = 'text/javascript';
 				script.async = true;
-				script.onload = this.onloadSocketIO;
+				//script.addEventListener('load',this.initSocketObject);
+				script.onload = () => {
+					this.initSocketObject();
+					};
 				script.src = this.optionsIO.url + '/socket.io/socket.io.js';
 				document.getElementsByTagName('head')[0].appendChild(script);
 			}
@@ -85,7 +101,7 @@ function jiffyMultiClient () {
 		this.initSocketObject();
 	}
 	this.sendWebsocket = function (method, path, data) {
-		new Promise(function(resolve, reject) {
+		return new Promise((resolve, reject) => {
 		var timestamp = Date.now();
 		this.wsReqCollection[timestamp + '/' + method + path] = {path: path, method: method, timestamp: timestamp, data: data, resolve: resolve, reject: reject};
 		if(data.reqPathServer != null && data.reqPathServer != null) {
@@ -98,32 +114,53 @@ function jiffyMultiClient () {
 	}
 	this.initSocketObject = function() {
 		this.io = io(this.optionsIO.url);
-		this.on('res', this.processRes);
+		this.io.on('res', (d) => {
+			this.processRes(d);
+			});
+		this.wsReady = true;
 	}
 	this.processRes = function(data) {
 		if(data.code == 404) {
-			this.wsReqCollection[data.timestamp + '/' + path].reject(data);
+			//this.wsReqCollection[data.timestamp + '/' + path].reject(data);
+			//this.eraseWSItem(data.timestamp + '/' + path);
 		} else {
 			if(this.transportEmulate == 'axios') {
 				if(data.type == 'binary') {
-					data.data = new Uint8Array(this.data.data);
+					data.data = new Uint8Array(data.data);
 				}
-				this.wsReqCollection[data.timestamp + '/' + path].resolve(data.data);
+				this.wsReqCollection[data.timestamp + '/' + path].resolve(data);
+				this.eraseWSItem(data.timestamp + '/' + data.path);
 			} else {
-				this.wsReqCollection[data.timestamp + '/' + path].resolve(
-				{data: data, 
-				json: () => { return new Promise((resolve, reject) => { resolve(this.data.data); }); }, 
-				text: () => { return new Promise((resolve, reject) => { 
-					if(typeof this.data.data === 'object') { 
-						this.data.data = JSON.stringify(this.data.data);
+				this.wsReqCollection[data.timestamp + '/' + data.path].resolve(
+				{data: data.data, 
+				json: () => { return new Promise((resolve, reject) => { 
+					if(typeof data.data === 'string') {
+						data.data = JSON.parse(data.data);
 					}
-					resolve(this.data.data); 
+					resolve(data.data); this.eraseWSItem(data.timestamp + '/' + path); }); }, 
+				text: () => { return new Promise((resolve, reject) => { 
+					if(typeof data.data === 'object') { 
+						data.data = JSON.stringify(data.data);
+					}
+					resolve(data.data); 
+					this.eraseWSItem(data.timestamp + '/' + path);
 				}); }, 
-				blob: () => { return new Promise((resolve, reject) => { resolve(new Uint8Array(this.data.data)); }); }  
+				blob: () => { return new Promise((resolve, reject) => {
+					console.log(data.data); 
+					resolve(btoa(String.fromCharCode.apply(null, new Uint8Array(data.data))));
+					//resolve(new Uint8Array(data.data)); 
+					this.eraseWSItem(data.timestamp + '/' + path); }); },
+				raw: () => { return new Promise((resolve, reject) => { 
+					resolve(data.data); 
+					this.eraseWSItem(data.timestamp + '/' + path); }); }					  
 				});				
 			}
 						
 		}
 	}
+	this.eraseWSItem = function (i) {
+		this.wsReqCollection[i] = null;
+	}
 	
 }
+
