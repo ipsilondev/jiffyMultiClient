@@ -11,7 +11,7 @@ function jiffyMultiClient () {
 		if(options.transportHTTP == 'fetch') {
 			this.transportHTTP = this.fetchTransport;
 			this.transportEmulate = 'fetch';
-		} else if(options.reqFramework == 'axios') {
+		} else if(options.transportHTTP == 'axios') {
 			this.transportHTTP = this.axiosTransport;
 			this.transportEmulate = 'axios';
 		} else {
@@ -48,7 +48,7 @@ function jiffyMultiClient () {
 		} else {
 			obj.body = data;
 		}
-		return fetch(url, data);
+		return fetch(url, obj, data);
 	}
 	this.axiosTransport = function(method, path, data) {
 		if(method == 'get') {
@@ -120,15 +120,11 @@ function jiffyMultiClient () {
 		this.wsReady = true;
 	}
 	this.processRes = function(data) {
-		if(data.code == 404) {
-			//this.wsReqCollection[data.timestamp + '/' + path].reject(data);
-			//this.eraseWSItem(data.timestamp + '/' + path);
-		} else {
 			if(this.transportEmulate == 'axios') {
-				if(data.type == 'binary') {
-					data.data = new Uint8Array(data.data);
+				if(data.data instanceof ArrayBuffer) {
+					data.data = new Blob([new Uint8Array(data.data)], {type: 'application/octet-stream'});
 				}
-				this.wsReqCollection[data.timestamp + '/' + path].resolve(data);
+				this.wsReqCollection[data.timestamp + '/' + data.path].resolve(data);
 				this.eraseWSItem(data.timestamp + '/' + data.path);
 			} else {
 				this.wsReqCollection[data.timestamp + '/' + data.path].resolve(
@@ -145,18 +141,16 @@ function jiffyMultiClient () {
 					resolve(data.data); 
 					this.eraseWSItem(data.timestamp + '/' + path);
 				}); }, 
-				blob: () => { return new Promise((resolve, reject) => {
-					console.log(data.data); 
-					resolve(btoa(String.fromCharCode.apply(null, new Uint8Array(data.data))));
-					//resolve(new Uint8Array(data.data)); 
+				blob: () => { return new Promise((resolve, reject) => {				
+					resolve(new Blob([new Uint8Array(data.data)], {type: 'application/octet-stream'}));
+					//in case you may want to get base64 from bindary data, use the line below
+					//resolve(btoa(String.fromCharCode.apply(null, new Uint8Array(data.data))));
 					this.eraseWSItem(data.timestamp + '/' + path); }); },
 				raw: () => { return new Promise((resolve, reject) => { 
 					resolve(data.data); 
 					this.eraseWSItem(data.timestamp + '/' + path); }); }					  
 				});				
-			}
-						
-		}
+			}								
 	}
 	this.eraseWSItem = function (i) {
 		this.wsReqCollection[i] = null;

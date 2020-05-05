@@ -1,15 +1,35 @@
 {
-  "name": "jiffymulticlient",
-  "version": "0.1.0",
-  "description": "Wrapper for client request to services on http & websocket if is available",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
+  "_from": "git+https://github.com/ipsilondev/jiffyMultiClient.git",
+  "_id": "jiffymulticlient@0.1.0",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/jiffymulticlient",
+  "_phantomChildren": {},
+  "_requested": {
     "type": "git",
-    "url": "git+https://github.com/ipsilondev/jiffyMultiClient.git"
+    "raw": "https://github.com/ipsilondev/jiffyMultiClient",
+    "rawSpec": "https://github.com/ipsilondev/jiffyMultiClient",
+    "saveSpec": "git+https://github.com/ipsilondev/jiffyMultiClient.git",
+    "fetchSpec": "https://github.com/ipsilondev/jiffyMultiClient.git",
+    "gitCommittish": null
   },
+  "_requiredBy": [
+    "#USER",
+    "/"
+  ],
+  "_resolved": "git+https://github.com/ipsilondev/jiffyMultiClient.git#af9006765fba3af75ec0aae4423b8508a355a57d",
+  "_spec": "https://github.com/ipsilondev/jiffyMultiClient",
+  "_where": "/home/shadowlap/work/test-jiffy",
+  "author": {
+    "name": "Ipsilon Developments Inc."
+  },
+  "bugs": {
+    "url": "https://github.com/ipsilondev/jiffyMultiClient/issues"
+  },
+  "bundleDependencies": false,
+  "deprecated": false,
+  "description": "Wrapper for client request to services on http & websocket if is available",
+  "homepage": "https://github.com/ipsilondev/jiffyMultiClient#readme",
   "keywords": [
     "fetch",
     "axios",
@@ -19,10 +39,15 @@
     "ajax",
     "xhr"
   ],
-  "author": "Ipsilon Developments Inc.",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/ipsilondev/jiffyMultiClient/issues"
+  "main": "index.js",
+  "name": "jiffymulticlient",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipsilondev/jiffyMultiClient.git"
   },
-  "homepage": "https://github.com/ipsilondev/jiffyMultiClient#readme"
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "0.1.0"
 }
