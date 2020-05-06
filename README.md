@@ -1,2 +1,98 @@
 # jiffyMultiClient
-Wrapper for client request to services on http &amp; websocket if is available
+Mirror wrapper for client request to services on http &amp; websocket if is available
+
+> If socket.io had a bastard son with axios or fetch, this will be the result - [David R. Comba Lareu](https://twitter.com/shadow_of__soul)
+
+**THIS IS A PROOF OF CONCEPT. USE IT AT YOUR OWN RISK**
+
+# What is jiffyMultiClient?
+jiffyMultiClient is a wrapper (that works togheter with [jiffyMultiServer](https://github.com/ipsilondev/jiffyMultiServer), that mirrors request to http services in websocket flavor (if available), supporting the same syntax, properties and methods as axios & fetch to make transparent, effortless request, automatically changing protocols if available.
+
+# Why?
+HTTP has a inherent overhead. Even if you have can improve server response times, is pretty hard that it will be faster than Websocket (from our benchmarking, the minimum latency on a HTTP request, is 30ms, vs 1-5ms of any websocket exchange). But at the same time, websocket is not instantly connected to the server either (WS takes at least, 200ms to establish a connection). What happen if you want to make a request as soon the page loads anyway and not wait for WS to connect? and have a transparent API that will not make your code hard to maintain? What happen if you want to just one day, stop using this and go back to simple fetch/axios by only changing 3 lines of code? That's the reason behind creating jiffyMultiClient.
+
+# Ok, i wanna give it a try, what now?
+
+We recommend you checkout our [example repo](https://github.com/ipsilondev/jiffyExample) first.
+
+## Installation
+
+`npm install git+https://github.com/ipsilondev/jiffyMultiClient.git`
+
+## Use as module
+
+```javascript
+import jiffyMultiClient from jiffymulticlient
+const jiffyMultiClient = require('jiffymulticlient');
+```
+
+## Or as script tag
+
+`<script src="/node_modules/jiffymulticlient/index.js"></script>`
+
+## Initialization
+As transportHTTP you can pass `fetch`, `axios` or an axios instance object too
+```javascript
+jiffy = new jiffyMultiClient ();
+jiffy.init({transportHTTP: 'fetch', baseURL: 'http://127.0.0.1'});
+```
+## Making requests fetch style
+Not all methods or props of fetch are supported if the request is made by websockets, only `json()`, `blob()` & `text()`, but it's syntax is exactly the same whatever the call has been made with.
+```javascript
+    jiffy.get('/getImage').then((d) => {
+		return d.blob();
+		}).then((blob) => {
+    	var img = document.createElement('img');
+			img.src = URL.createObjectURL(blob);
+			document.getElementById('httpContainer').appendChild(img);	
+    });
+ ```
+
+## Making requests axios style
+Not all methods or props of axios are supported if the request is made by websockets, only `json()`, `blob()` & `text()`, but it's syntax is exactly the same whatever the call has been made with.
+
+```javascript
+jiffy.post('/getJSON').then((d) => {
+  var elem = document.createElement('div');
+	elem.innerHTML = "" + (typeof d.data) + ' = ' + JSON.stringify(d.data);
+	document.getElementById('httpContainer').appendChild(elem);		
+});
+```
+
+## Websocket iniialization		
+You must initialize the connection to the websocket, manually. It can be done at any point in time, but we let you control when & how, plus we expose the socket.io client in the `jiffyMultiClient.io` property just in case you wanna interact with it manually.
+
+```javascript
+jiffy.initWebsocket([options]);
+```
+
+Optional, you can pass an `option` object to the function, that support the followin properties:
+
+`options.url`: websocket server url (where we connect and where we load the socket.io file in case is not loaded yet. if is not passed, same as http server will be used
+`options.ioOptions`: options to pass to socket.io
+`options.io`: in case you already have an io connection, overwrite the local one	
+
+## I want to go back to simple axios / fetch
+The use of jiffiMultiClient is riskless. Simply, as it has exactly the same syntax as `fetch` & `axios`, if you assign to the jiffy instance, axios or fetch, it will automatically work, all the code, with no changes
+
+```javascript
+//comment the jiffy initialization code
+//jiffy = new jiffyMultiClient ();
+//jiffy.init({transportHTTP: 'fetch', baseURL: 'http://127.0.0.1'});
+```
+then just assign the variable:
+```javascript
+jiffy = fetch;
+jiffy = axios;
+```
+## Quirks, bugs, uncomplete API
+
+The work done so far, is not a 1:1 mirror implementation of axios & fetch on websockets. There are tons of properties that are not implemented, functions too. Only basic functions & logic is implemented, to mirror `get` & `post` request on both flavors. This is a proof of concept, and has only been developer as is. No guarantees to be extended in the future. 
+If you never do the websocket initialization or is disconnected from the WS server, it will make the normal http request, and you will receive the original promise generated by `axios` or `fetch`.
+
+**YOU WILL LOSE CACHE-CONTROL & ETAG SUPPORT ON WEBSOCKETS**
+Enabling websockets, means that you are losing Cache-Control/ETag  capabilities. That means that if you are loading images or static content from this request's, they will be downloaded anyway, even if they are already cached by an earlier HTTP request.
+
+# Author
+
+Made with love, by [David R. Comba Lareu](https://twitter.com/shadow_of__soul) CEO of [Ipsilon Developments Inc.](https://ipsilondev.com), MIT licensed.
