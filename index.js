@@ -82,13 +82,12 @@ function jiffyMultiClient () {
 			} else {
 				this.optionsIO.url = this.baseURL;
 			}
-			if(typeof io != 'undefined') {
+			if(typeof io != 'undefined' || typeof module != 'undefined') {
 				this.initSocketObject();
 			} else {
 				var script = document.createElement('script');
 				script.type = 'text/javascript';
 				script.async = true;
-				//script.addEventListener('load',this.initSocketObject);
 				script.onload = () => {
 					this.initSocketObject();
 					};
@@ -113,7 +112,11 @@ function jiffyMultiClient () {
 		});
 	}
 	this.initSocketObject = function() {
+		if(typeof module != 'undefined') {
+		this.io = require('socket.io-client')(this.optionsIO.url);
+		} else {
 		this.io = io(this.optionsIO.url);
+		}
 		this.io.on('res', (d) => {
 			this.processRes(d);
 			});
@@ -157,4 +160,6 @@ function jiffyMultiClient () {
 	}
 	
 }
-
+if(typeof module != 'undefined') {
+module.exports = jiffyMultiClient;
+}
